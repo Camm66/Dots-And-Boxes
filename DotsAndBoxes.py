@@ -29,6 +29,8 @@ class DotsAndBoxes:
         print("Dots And Boxes")
         while True:
             self.board.displayBoard()
+            print("Player 1 Score: %s" % self.playerScore)
+            print("Player 2 Score: %s\n" % self.aiScore)
             print("Coordinate format == x,y,x2,y2")
             print("Hit 0 and enter to quit")
             try:
@@ -55,7 +57,7 @@ class Board:
         self.m = _m
         self.n = _n
         self.moves = (_m + 1) * (_n + 1)
-        self.board = self.generateBoxes(_m, _n)
+        self.boxes = self.generateBoxes(_m, _n)
         self.connectedVectors = set()
         self.openVectors = self.generateVectors(_m, _n)
         # Test Box
@@ -88,24 +90,37 @@ class Board:
         return vectors
 
     def displayBoard(self):
-        print("")
-        str1 = "  "
+        # Set X axis Labels
+        str1 = "\n  "
         for i in range(self.m + 1):
             str1 = str1 + "   %s" % i
         print(str1)
 
+        # Draw remaining board
+        boxVal = " "
         for i in range(self.m + 1):
+            # Append the Y axis label to the beginning of a row
             str1 = "%s " % i
             str2 = "     "
             for j in range(self.n + 1):
+                # Check for horizontal connections
                 if ((j - 1, i), (j, i)) in self.connectedVectors:
                     str1 = str1 + "---*"
                 else:
                     str1 = str1 + "   *"
-                if ((j, i - 1), (j, i)) in self.connectedVectors:
-                    str2 = str2 + "|   "
+
+                # Check for the box value of a given square based on the top left coordinate
+                if j < self.n:
+                    if self.boxes[j][i - 1].TopLeft == (j, i - 1):
+                        boxVal = self.boxes[j][i - 1].value
                 else:
-                    str2 = str2 + "    "
+                    boxVal = " "
+
+                # Check for vertical connections
+                if ((j, i - 1), (j, i)) in self.connectedVectors:
+                    str2 = str2 + "| %s " % boxVal
+                else:
+                    str2 = str2 + "  %s " % boxVal
             print(str2)
             print(str1)
         print("")
@@ -114,10 +129,24 @@ class Board:
         if coordinates in self.openVectors:
             self.openVectors.discard(coordinates)
             self.connectedVectors.add(coordinates)
+            self.checkBoxes()
             return True
         else:
             return False
 
+    def checkBoxes(self):
+        pass
+    '''
+    value = 0
+    box = None
+    for i in range(self.m):
+        for j in range(self.n):
+            box = boxes[i][j]
+            if box.complete == true:
+                value = box.value
+                break
+    return value
+    '''
 
 class Box:
     def __init__(self, _x, _y):
