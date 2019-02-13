@@ -26,13 +26,25 @@ class DotsAndBoxes:
         self.board = Board(_x, _y)
 
     def playGame(self):
-        self.board.displayBoard()
-#        while True:
-#            action = input("Enter the coordinates of the dots you wish to connect:")
-#            integers = [int(x) for x in action.split()]
-#            coordinate = (integers[0], integers[1])
-#            coordinate2 = (integers[2], integers[3])
-#            self.board.move(coordinate, coordinate2)
+        print("Dots And Boxes")
+        while True:
+            self.board.displayBoard()
+            print("Coordinate format == x,y,x2,y2")
+            print("Hit 0 and enter to quit")
+            try:
+                integers = input("Enter the coordinates of the dots you wish to connect:")
+                if integers == 0:
+                    break
+                coordinate = (integers[0], integers[1])
+                coordinate2 = (integers[2], integers[3])
+                success = self.board.move((coordinate, coordinate2))
+                if success:
+                    print("Please wait while your opponent moves...")
+                else:
+                    print("Invalid coordinates specified!")
+            except SyntaxError:
+                print("Invalid input, please try again...")
+        print("\nExiting game...")
 
     def minimax(self):
         pass
@@ -44,6 +56,18 @@ class Board:
         self.n = _n
         self.moves = (_m + 1) * (_n + 1)
         self.board = self.generateBoxes(_m, _n)
+        self.connectedVectors = set()
+        self.openVectors = self.generateVectors(_m, _n)
+        # Test Box
+        self.connectedVectors.add(((0, 0), (1, 0)))
+        self.connectedVectors.add(((1, 0), (1, 1)))
+        self.connectedVectors.add(((0, 0), (0, 1)))
+        self.connectedVectors.add(((0, 1), (1, 1)))
+
+        self.openVectors.remove(((0, 0), (1, 0)))
+        self.openVectors.remove(((1, 0), (1, 1)))
+        self.openVectors.remove(((0, 0), (0, 1)))
+        self.openVectors.remove(((0, 1), (1, 1)))
 
     def generateBoxes(self, m, n):
         cols = n
@@ -54,23 +78,45 @@ class Board:
                 boxes[i][j] = (Box(i, j))
         return boxes
 
+    def generateVectors(self, m, n):
+        vectors = set()
+        for i in range(0, m):
+            for j in range(0, n):
+                vectors.add(((j, i), (j, i + 1)))
+                vectors.add(((j, i), (j + 1, i)))
+            vectors.add(((n, i), (n, i + 1)))
+        return vectors
+
     def displayBoard(self):
-        print("Dots And Boxes")
-        
-        str = "  "
+        print("")
+        str1 = "  "
         for i in range(self.m + 1):
-            str = str + "%s   " % i
-        print(str)
+            str1 = str1 + "   %s" % i
+        print(str1)
 
         for i in range(self.m + 1):
-            str = "%s " % i
+            str1 = "%s " % i
+            str2 = "     "
             for j in range(self.n + 1):
-                str = str + "*   "
-            print(str)
-            print("")
+                if ((j - 1, i), (j, i)) in self.connectedVectors:
+                    str1 = str1 + "---*"
+                else:
+                    str1 = str1 + "   *"
+                if ((j, i - 1), (j, i)) in self.connectedVectors:
+                    str2 = str2 + "|   "
+                else:
+                    str2 = str2 + "    "
+            print(str2)
+            print(str1)
+        print("")
 
-    def move(self, coordinate, coordinate2):
-        pass
+    def move(self, coordinates):
+        if coordinates in self.openVectors:
+            self.openVectors.discard(coordinates)
+            self.connectedVectors.add(coordinates)
+            return True
+        else:
+            return False
 
 
 class Box:
