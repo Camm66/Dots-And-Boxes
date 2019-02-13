@@ -129,19 +129,25 @@ class Board:
         if coordinates in self.openVectors:
             self.openVectors.discard(coordinates)
             self.connectedVectors.add(coordinates)
-            self.checkBoxes()
+            self.checkBoxes(coordinates)
             return True
         else:
             return False
 
-    def checkBoxes(self):
+    def checkBoxes(self, coordinates):
         pass
     '''
+
+
+
+
     value = 0
     box = None
     for i in range(self.m):
         for j in range(self.n):
             box = boxes[i][j]
+            if coordinates in box.lines:
+                box.check(coordinates)
             if box.complete == true:
                 value = box.value
                 break
@@ -198,5 +204,3 @@ class Box:
                 self.left = True
                 success = True
         return success
-
-
