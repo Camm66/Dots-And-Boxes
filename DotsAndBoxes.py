@@ -1,10 +1,13 @@
 from random import randint
+from copy import deepcopy
 
 
 class DotsAndBoxes:
     def __init__(self, _ply, _x, _y):
         self.ply = _ply
         self.board = Board(_x, _y)
+
+
 
     def playGame(self):
         print("Dots And Boxes")
@@ -40,10 +43,9 @@ class DotsAndBoxes:
                 if integers is 0:
                     return False
 
-                coordinate = (integers[0], integers[1])
-                coordinate2 = (integers[2], integers[3])
+                coordinates = ((integers[0], integers[1]), (integers[2], integers[3]))
 
-                success = self.board.move1((coordinate, coordinate2))
+                success = self.board.move(coordinates, 0)
 
                 if success == 0:
                     break
@@ -54,10 +56,47 @@ class DotsAndBoxes:
         return True
 
     def aiMove(self):
-        pass
+        # Display current state
+        self.board.displayBoard()
+        # Create a copy of the current board state for tree calculation
+        openVectorsCopy = deepcopy(self.board.openVectors)
+        # Call minimax algorithm for best state
+        coordinates = self.minimax(openVectorsCopy, self.ply, True)
+        # Execute move
+        self.board.move(coordinates, 1)
 
-    def minimax(self):
-        pass
+    def minimax(self, state, ply, max):
+
+        bestMove = (0, 0)
+
+        if ply == 0 or len(state) == 0:
+            return bestMove
+
+        for i in range(len(state)):
+            move = state[i]
+            state.remove(move)
+
+
+            move = self.minimax(state, ply - 1, not max)
+            h = self.evaluationFunction(move)
+            
+            if max is True:
+                if h > bestMove[0]:
+                    bestMove = (h, move)
+            else:
+                if h < bestMove[1]:
+                    bestMove = (h, move)
+
+        return bestMove
+
+
+            h = self.evaluationFunction(move)
+            if h > bestMove[0]:
+                bestMove = (h, state[i])
+        return bestMove
+
+    def evaluationFunction(self, move):
+        return move
 
 class Board:
     def __init__(self, _m, _n):
@@ -126,20 +165,16 @@ class Board:
             print(str1)
         print("")
 
-    def move1(self, coordinates):
+    def move(self, coordinates, player):
         if coordinates in self.openVectors:
             self.openVectors.discard(coordinates)
             self.connectedVectors.add(coordinates)
-            success = self.checkBoxes(coordinates, 1)
-            if success:
-                return 1
-            else:
-                return 0
+            self.checkBoxes(coordinates, player)
+            return 0
         else:
             return -1
 
     def checkBoxes(self, coordinates, owner):
-        success = False
         for i in range(self.m):
             for j in range(self.n):
                 box = self.boxes[i][j]
@@ -147,11 +182,10 @@ class Board:
                     box.connectDot(coordinates)
                 if box.complete is True and box.owner is None:
                     box.owner = owner
-                    if owner == 1:
+                    if owner == 0:
                         self.playerScore += box.value
-                    success = True
-                    print("Success!")
-        return success
+                    elif owner == 1:
+                        self.aiScore += box.value
 
 
 class Box:
@@ -189,7 +223,6 @@ class Box:
 
     def connectDot(self, coordinates):
         line = coordinates
-        print("Connecting")
         success = False
         if line in self.lines:
             if line == self.TopLine and self.top is False:
