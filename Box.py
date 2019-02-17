@@ -45,5 +45,6 @@ class Box:
                 self.left = True
                 success = True
         if self.top is True and self.right is True and self.bottom is True and self.right is True:
+            print("Npx completed")
             self.complete = True
         return success
