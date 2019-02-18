@@ -1,6 +1,7 @@
 from collections import deque
 from Box import *
 
+
 class Board:
     def __init__(self, _m, _n):
         self.playerScore = 0
@@ -10,8 +11,6 @@ class Board:
         self.boxes = self.generateBoxes(_m, _n)
         self.openVectors = self.generateVectors(_m, _n)
         self.connectedVectors = set()
-        self.lastValue = 0
-        self.prevComplete = False
         # For alpha beta pruning
         self.alpha = -100000
         self.beta = 100000
@@ -125,8 +124,6 @@ class Board:
                 box = self.boxes[i][j]
                 if coordinates in box.lines:
                     box.connectDot(coordinates)
-                    # Store the value of most recently selected box, to be used by AI
-                    self.lastValue = box.value
                 if box.complete is True and box.owner is None:
                     box.owner = player
                     self.prevComplete = True
@@ -135,5 +132,3 @@ class Board:
                         self.playerScore += box.value
                     elif player == 1:
                         self.aiScore += box.value
-                else:
-                    self.prevComplete = False

@@ -44,7 +44,6 @@ class Box:
             elif line == self.LeftLine and self.left is False:
                 self.left = True
                 success = True
-        if self.top is True and self.right is True and self.bottom is True and self.right is True:
-            print("Npx completed")
+        if self.top is True and self.right is True and self.bottom is True and self.left is True:
             self.complete = True
         return success

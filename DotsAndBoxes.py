@@ -18,16 +18,13 @@ class DotsAndBoxes:
             print("Hit 0 and enter to quit")
 
             self.board.displayBoard()
-            print(self.board.openVectors)
+
             success = self.playerMove()
             if success is False:
                 break
-            print(self.board.playerScore)
-            print(self.board.aiScore)
-            print("Please wait while your opponent moves...")
+
+            print("\nPlease wait while your opponent moves...\n")
             self.aiMove()
-            print(self.board.playerScore)
-            print(self.board.aiScore)
         self.reportWinner()
 
     def playerMove(self):
@@ -62,14 +59,15 @@ class DotsAndBoxes:
         move to be executed by the AI on the game board.
         '''
         # Create a copy of the current board state for tree calculation
-        state = self.copy(self.board)
+        state = deepcopy(self.board)
+        openVectors = deepcopy(self.board.openVectors)
 
         # Retrieve coordinates from minimax algorithm
-        coordinates = self.minimax(state, self.ply, True)
-        print(coordinates)
+        coordinates = self.minimax(state, openVectors, self.ply, True)
+
         self.board.move(coordinates[1], 1)
 
-    def minimax(self, state, ply, max_min):
+    def minimax(self, state, openVectors, ply, max_min):
         '''
         This function contains the core logic regarding the minimax algorithm.
         Parameters:
@@ -88,32 +86,44 @@ class DotsAndBoxes:
 
         # If the ply depth limit is reached or available successors are exhausted,
         # we evaluate and return the value of the current state
-        if ply <= 0 or len(state.openVectors) == 0:
-            h = state.aiScore
-            print("Leaf score %s" % h)
+        if ply == 0 or len(openVectors) == 0:
+            h = self.evaluationFunction(state)
             return (h, None)
 
         # Get successors
-        for i in range(0, len(state.openVectors)):
+        for i in range(0, len(openVectors)):
             # Retrieve coordinates of current successor state
-            move = state.openVectors.pop()
+            move = openVectors.pop()
 
             # Create a deep copy of the state to be explored
-            stateCopy = self.copy(state)
-            if max_min is True:
-                stateCopy.move(move, 0)
-            else:
-                stateCopy.move(move, 1)
+            stateCopy = deepcopy(state)
+            openVectorsCopy = deepcopy(openVectors)
+            stateCopy.move(move, max_min)
 
             # Add the coordinates back onto the openVector list, this ensures subsequent
             # child states at the current depth can fully explore the remainder of the tree
-            state.openVectors.appendleft(move)
+            openVectors.appendleft(move)
+
+            # Alpha-Beta Pruning
+            # We check the requisite value (beta on a max node, alpha on a min) before
+            # exploring the nodes children. If a violation is detected, this path returns.
+            h = self.evaluationFunction(stateCopy)
+            if max_min is True:
+                if h >= stateCopy.beta:
+                    return (h, move)
+                else:
+                    stateCopy.alpha = max(stateCopy.alpha, h)
+            else:
+                if h <= stateCopy.alpha:
+                    return (h, move)
+                else:
+                    stateCopy.beta = min(stateCopy.beta, h)
 
             # Make a recursive call to the minimax function with the child state
             # The goal state is back propagated up the tree upon the end of recursion,
             # IE, when ply limit is reached or the open moves are exhausted
-            nextMove = self.minimax(stateCopy, ply - 1, not max_min)
-            print("%s %s" % (nextMove[0], move))
+            nextMove = self.minimax(stateCopy, openVectorsCopy, ply - 1, not max_min)
+
             # Check the score returned from the child state against the 'bestScore'
             if max_min is True:
                 # At a max level, we seek scores higher than the current max
@@ -125,20 +135,12 @@ class DotsAndBoxes:
                     bestMove = (nextMove[0], move)
         return bestMove
 
-    def copy(self, state):
-        stateCopy = deepcopy(state)
-        stateCopy.openVectors = deepcopy(state.openVectors)
-        stateCopy.boxes = deepcopy(state.boxes)
-        return stateCopy
-
     def evaluationFunction(self, state):
         '''
         This an evaluation function which calculates the heuristic value of a given leaf state.
         In this case, h == point total for the AI - point total for the player
-        Additionally, x == the value of the most recent partially filled box / 10.
-        This is used to bias the AI towards larger value squares at lower ply values and initial states
         '''
-        h = state.aiScore
+        h = state.aiScore - state.playerScore
         return h
 
     def reportWinner(self):
@@ -156,4 +158,3 @@ class DotsAndBoxes:
         print("Player Score: %s" % self.board.playerScore)
         print("AI Score: %s" % self.board.aiScore)
         print("\nExiting game...")
-
