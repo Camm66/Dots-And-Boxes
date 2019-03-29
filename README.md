@@ -1,5 +1,5 @@
 # Dots And Boxes
-This project is an implementation of the Dots And Boxes game. Its purpose is to demonstrate the use of the _minimax algorithm_ by an adversarial agent. 
+This project is a simple implementation of the Dots And Boxes game. Its purpose is to demonstrate the use of the _minimax algorithm_ with _alpha beta pruning_ by an adversarial agent. 
 
 ## Instructions to run this program:
 First, navigate to the root directory containing the following files:
